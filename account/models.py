@@ -39,6 +39,13 @@ class User(AbstractBaseUser):
         max_length=250,
         unique=True,
     )
+    
+    USER_CHOICES = (
+    ("H", "Head"),
+    ("T", "Teacher"),
+    ("S", "Student"),)
+
+    user_type = models.CharField(max_length=9,choices=USER_CHOICES,default="S")
     name = models.CharField(max_length=50)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
