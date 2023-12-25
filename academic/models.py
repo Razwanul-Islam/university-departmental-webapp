@@ -56,3 +56,17 @@ class club(models.Model):
 
     def __str__(self):
         return self.club_name
+
+#class's model created here
+class Class(models.Model):
+    class_id=models.AutoField(primary_key=True)
+    class_name=models.CharField(max_length=64)
+    semester=models.IntegerField()
+    session=models.IntegerField()
+    academic_year = models.CharField(max_length=10)
+    class_teacher=models.ForeignKey(get_user_model(),on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.class_name
+
+
