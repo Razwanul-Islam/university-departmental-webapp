@@ -1,7 +1,7 @@
 from rest_framework import serializers
-from .models import notice
+from .models import notice, exam,subject,result
 from django.contrib.auth import get_user_model
-from .models import subject
+
 
 class NoticeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -23,3 +23,21 @@ class SubjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = subject
         fields = ['subject_id', 'subject_name', 'subject_code', 'teacher_id']
+        
+
+
+class ExamSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = exam
+        fields = ['exam_id', 'exam_name', 'exam_date', 'subject_id']
+        
+        
+        
+
+
+
+class ResultSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = result
+        fields = ['result_id', 'user_id', 'subject_id', 'exam_id', 'marks', 'grade']
+
