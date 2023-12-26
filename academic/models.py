@@ -29,7 +29,7 @@ class notice(models.Model):
     user_id=models.ForeignKey(get_user_model(),on_delete=models.CASCADE)
     notice_title=models.CharField(max_length=64)
     notice_description=models.TextField()
-    notice_date=models.DateField()
+    notice_date=models.DateField(auto_now=True)
     subject_id=models.ForeignKey(subject,on_delete=models.CASCADE)
 
     def __str__(self):

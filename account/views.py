@@ -9,7 +9,7 @@ from account.renderers import UserRenderer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 
-#generate token manually
+#generate token manually here
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
 
