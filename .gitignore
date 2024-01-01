@@ -1,2 +1,6 @@
 db.sqlite3
 env
+
+academic/__pycache__/admin.cpython-311.pyc
+academic/__pycache__/models.cpython-311.pyc
+academic/migrations/__pycache__/0005_merge_20231226_1124.cpython-311.pyc
