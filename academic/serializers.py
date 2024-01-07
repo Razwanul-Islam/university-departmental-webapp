@@ -1,7 +1,7 @@
 from rest_framework import serializers
-from .models import notice
+from .models import notice,subject
 from django.contrib.auth import get_user_model
-from .models import subject
+
 
 class NoticeSerializer(serializers.ModelSerializer):
     class Meta:
