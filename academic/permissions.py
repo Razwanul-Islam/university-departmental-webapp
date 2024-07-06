@@ -8,3 +8,4 @@ class IsHeadUser(permissions.BasePermission):
             return request.user.is_authenticated
         # Check if the user is authenticated and has the user_type "Head" for other methods
         return request.user.is_authenticated and request.user.user_type == 'H'
+

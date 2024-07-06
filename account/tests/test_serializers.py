@@ -1,77 +1,68 @@
+import pytest
+from rest_framework.exceptions import ValidationError
 from account.models import User
-from rest_framework.test import APITestCase
-from account.serializers import UserRegistrationSerializer,UserLoginSerializer,UserProfileSerializer
+from account.serializers import UserRegistrationSerializer, UserLoginSerializer
 
-
-class TestUserRegistrationSerializer(APITestCase):
-
-
-    def test_can_create_user(self):
-        data={
-            'email':'test@gmail.com',
-            'name':'test',
-            'password':'test123',
-            'password2':'test123'
-        }
-
-        serializer=UserRegistrationSerializer(data=data)
-        self.assertTrue(serializer.is_valid())
-        self.assertEqual(serializer.errors,{})
+@pytest.mark.django_db
+class TestUserRegistrationSerializer:
     
-
-    def test_user_serializer_password_mismatch(self):
-        data={
-            'email':'test@gmail.com',
-            'name':'test',
-            'password':'test1234',
-            'password2':'mtest1234'
+    def test_password_match(self):
+        # Test case where passwords match
+        data = {
+            'email': 'test@example.com',
+            'name': 'Test User',
+            'password': 'testpassword',
+            'password2': 'testpassword'
         }
-        serializer=UserRegistrationSerializer(data=data)
-        self.assertFalse(serializer.is_valid())
-        #self.assertTrue(serializer.is_valid())
-        #self.assertEqual(serializer.errors['non_field_errors'][0], "Password doesn't match")
-        #self.assertEqual(serializer.errors,{})
-
-    # def test_user_serializer_duplicate_email(self):
-    #     User.objects.create_user(email='existinguser@example.com',password='test1234',name='test') 
-
-    #     data={
-    #         'email':'existinguser@example.com',
-    #         'name':'test',
-    #         'password':'test1234',
-    #         'password2':'test1234',
-    #         }
-    #     serializer=UserRegistrationSerializer(data=data)
-    #     self.assertFalse(serializer.is_valid())
-    #     self.assertEqual(serializer.errors['email'][0], 'user with this email already exists.') 
-
-    
-    def test_user_serializer_create(self):
-        data={
-            'email':'test@gmail.com',
-            'name':'test', 
-            'password':'test1234',
-            'password2':'test1234',     
-        }
-        serializer=UserRegistrationSerializer(data=data)
-        self.assertTrue(serializer.is_valid())
-
-        user=serializer.create(serializer.validated_data)
-
-        self.assertEqual(user.email,'test@gmail.com')
-        self.assertEqual(user.name,'test')
-        self.assertTrue(user.is_active)
-
-
-    def test_user_serializer_update(self):
-        user=User.objects.create_user(email='existinguser@gmail.com',password='test1234',name='test')
-
-        data={
-            'name':'test1',   
-        }
-        serializer=UserRegistrationSerializer(user,data=data,partial=True)
-        self.assertTrue(serializer.is_valid())
-
-        update_user=serializer.update(user,serializer.validated_data)
+        serializer = UserRegistrationSerializer(data=data)
+        assert serializer.is_valid()
+        assert serializer.validated_data['password'] == 'testpassword'
+        assert serializer.validated_data['password2'] == 'testpassword'
         
-        self.assertEqual(update_user.name,'test1')
+        # Test case where passwords don't match
+        data['password2'] = 'differentpassword'
+        serializer = UserRegistrationSerializer(data=data)
+        with pytest.raises(ValidationError):
+            serializer.is_valid(raise_exception=True)
+
+    def test_create_user(self):
+        data = {
+            'email': 'test@example.com',
+            'name': 'Test User',
+            'password': 'testpassword',
+            'password2': 'testpassword'
+        }
+        serializer = UserRegistrationSerializer(data=data)
+        assert serializer.is_valid()
+        
+        # Call create method
+        user = serializer.save()
+        
+        assert user.email == 'test@example.com'
+        assert user.name == 'Test User'
+        assert user.check_password('testpassword')
+
+@pytest.mark.django_db
+class TestUserLoginSerializer:
+    
+    def test_valid_serialization(self):
+        data = {
+            'email': 'test@example.com',
+            'password': 'testpassword'
+        }
+        serializer = UserLoginSerializer(data=data)
+        assert serializer.is_valid()
+        assert serializer.validated_data['email'] == 'test@example.com'
+        assert serializer.validated_data['password'] == 'testpassword'
+
+    def test_valid_deserialization(self):
+        user = User.objects.create_user(email='test@example.com', name='Test User', password='testpassword')
+        serializer = UserLoginSerializer(instance=user)
+        
+        # The password field in the serialized data is hashed
+        expected_data = {
+            'email': 'test@example.com',
+            'password': user.password  # Compare against the hashed password stored in the database
+        }
+        assert serializer.data['email'] == expected_data['email']
+        assert serializer.data['password'] == expected_data['password']
