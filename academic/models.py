@@ -10,6 +10,8 @@ class subject(models.Model):
     subject_code=models.CharField(max_length=15)
     teacher_id=models.ForeignKey(get_user_model(),on_delete=models.CASCADE)
 
+    def __str__(self):
+        return self.subject_name
 
 #exam's model created here
 class exam(models.Model):
@@ -18,6 +20,8 @@ class exam(models.Model):
     exam_date=models.DateField()
     subject_id=models.ForeignKey(subject,on_delete=models.CASCADE)
 
+    def __str__(self):
+        return self.exam_name
 
 #notice model created here
 class notice(models.Model):
@@ -28,6 +32,8 @@ class notice(models.Model):
     notice_date=models.DateField(auto_now=True)
     subject_id=models.ForeignKey(subject,on_delete=models.CASCADE)
 
+    def __str__(self):
+        return self.notice_title
    
 #result's model created here
 class result(models.Model):
@@ -38,6 +44,8 @@ class result(models.Model):
     marks=models.IntegerField()
     grade=models.CharField(max_length=2)
 
+    def __str__(self):
+        return self.result_id
 
 #club's model created here
 class club(models.Model):
@@ -46,6 +54,8 @@ class club(models.Model):
     club_description=models.TextField()
     user_id=models.ForeignKey(get_user_model(),on_delete=models.CASCADE)
 
+    def __str__(self):
+        return self.club_name   
   
 #class's model created here
 class Class(models.Model):
@@ -56,4 +66,6 @@ class Class(models.Model):
     academic_year = models.CharField(max_length=10)
     class_teacher=models.ForeignKey(get_user_model(),on_delete=models.CASCADE)
 
+    def __str__(self):
+        return self.class_name
    

@@ -31,5 +31,5 @@ class clubAdmin(admin.ModelAdmin):
 #Class's is here
 @admin.register(Class)
 class ClassAdmin(admin.ModelAdmin):
-    list_display = ('class_id', 'class_name', 'semester','academic_year', 'class_teacher')
+    list_display = ('class_id', 'class_name', 'semester','session','academic_year', 'class_teacher')
 
