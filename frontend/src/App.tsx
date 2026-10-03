@@ -144,6 +144,7 @@ export default function App() {
                 key={key}
                 href={"#" + key}
                 className={current === key ? "active" : ""}
+                aria-current={current === key ? "page" : undefined}
               >
                 <Icon size={19} />
                 <span>{title}</span>
@@ -211,7 +212,7 @@ export default function App() {
             </button>
           </div>
         </header>
-        <main className="content">
+        <main className="content" key={current}>
           {current === "dashboard" ? (
             <Dashboard user={user} />
           ) : current === "profile" ? (

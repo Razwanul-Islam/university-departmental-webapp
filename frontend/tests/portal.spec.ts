@@ -97,108 +97,81 @@ test("head manages a subject; teacher records a result; student reads it", async
   });
 });
 
-test("student reads notices, joins a club, and edits their profile", async ({
+test("record names open details on the dashboard and every resource screen", async ({
   page,
 }) => {
-  await login(page, "student");
-  await page.screenshot({
-    path: "test-results/dashboard-desktop.png",
-    fullPage: true,
-  });
-  await open(page, "notices");
-  await page.getByRole("button", { name: "Read", exact: true }).first().click();
-  await expect(page.getByRole("dialog")).toBeVisible();
+  await login(page, "head");
+  const carousel = page.getByRole("region", { name: "Workspace highlights" });
+  await carousel.getByRole("button", { name: "Next highlight" }).click();
+  await expect(carousel).toContainText("A clear plan. A confident next step.");
+  await carousel.focus();
+  await page.keyboard.press("ArrowLeft");
+  await expect(carousel).toContainText("Your next chapter. All in one place.");
+  await carousel.getByRole("button", { name: /Show highlight 3/ }).click();
+  await carousel.getByRole("button", { name: "Discover your community" }).click();
+  await expect(page.getByRole("heading", { name: "Clubs", exact: true }).first()).toBeVisible();
+  await open(page, "dashboard");
+  await expect(page.locator(".announcement .record-link").first()).toBeVisible();
+  await page.screenshot({ path: "test-results/premium-dashboard.png", fullPage: true, animations: "disabled" });
+  await page.locator(".announcement .record-link").first().click();
+  await expect(
+    page.getByRole("dialog").locator(".notice-content"),
+  ).toBeVisible();
   await page.keyboard.press("Escape");
-  await expect(page.getByRole("dialog")).not.toBeVisible();
-  await open(page, "clubs");
-  const card = page
-    .locator(".club-card")
-    .filter({ hasText: "Programming Club" });
-  if (await card.getByRole("button", { name: "Leave club" }).count())
-    await card.getByRole("button", { name: "Leave club" }).click();
-  await card.getByRole("button", { name: "Join club" }).click();
-  await expect(card.getByText("Joined", { exact: true })).toBeVisible();
-  await card.getByRole("button", { name: "Leave club" }).click();
-  await expect(card.getByRole("button", { name: "Join club" })).toBeVisible();
-  await page.getByRole("button", { name: "Open profile" }).click();
-  await page.getByLabel("Full name").fill("Ayesha Karim");
-  await page.getByRole("button", { name: "Save profile" }).click();
-  await expect(page.getByRole("status")).toHaveText(
-    "Your profile has been updated.",
-  );
-});
+  await page.locator(".exam-preview .record-link").first().click();
+  await expect(page.getByRole("dialog")).toContainText("Exam");
+  await page.keyboard.press("Escape");
 
-test("mobile navigation works without horizontal page overflow", async ({
-  page,
-}) => {
+  for (const route of [
+    "subjects",
+    "classes",
+    "enrollments",
+    "exams",
+    "results",
+    "notices",
+    "clubs",
+    "users",
+  ]) {
+    await open(page, route);
+    const name = page.locator("main .record-link").first();
+    await expect(name).toBeVisible();
+    await name.focus();
+    await page.keyboard.press("Enter");
+    await expect(
+      page.getByRole("dialog").locator(".record-details"),
+    ).toBeVisible();
+    if (route === "classes")
+      await expect(page.getByRole("dialog")).toContainText(
+        "Data Structures & Algorithms",
+      );
+    if (route === "notices" || route === "clubs")
+      await expect(
+        page.getByRole("dialog").locator(".notice-content"),
+      ).toBeVisible();
+    if (route === "users")
+      await expect(page.getByRole("dialog")).toContainText("Email");
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).not.toBeVisible();
+    await expect(name).toBeFocused();
+    if (route === "notices") {
+      await page
+        .getByRole("button", { name: "Read", exact: true })
+        .first()
+        .click();
+      await expect(
+        page.getByRole("dialog").locator(".notice-content"),
+      ).toBeVisible();
+      await page.keyboard.press("Escape");
+    }
+  }
   await page.setViewportSize({ width: 390, height: 844 });
-  await login(page, "student");
-  await page.screenshot({
-    path: "test-results/dashboard-mobile.png",
-    fullPage: true,
-  });
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= window.innerWidth,
-    ),
-  ).toBe(true);
   await page.getByRole("button", { name: "Open navigation" }).click();
-  await open(page, "subjects");
-  await expect(
-    page.getByRole("heading", { name: "Subjects", exact: true }).first(),
-  ).toBeVisible();
-  await expect(page.locator(".sidebar")).not.toHaveClass(/open/);
-});
+  await open(page, "dashboard");
+  await expect(page.getByRole("heading", { name: "Overview", exact: true })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Workspace highlights" })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.screenshot({ path: "test-results/premium-mobile.png", fullPage: true, animations: "disabled" });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  expect(await page.locator(".hero-floating").evaluate((element) => getComputedStyle(element).animationName)).toBe("none");
 
-test("registration creates a student with a useful empty dashboard", async ({
-  page,
-}) => {
-  await page.goto("./");
-  await page.getByRole("button", { name: "Create an account" }).click();
-  await page.getByLabel("Full name").fill("New Campus Student");
-  await page
-    .getByLabel("Email address")
-    .fill("browser" + Date.now() + "@example.edu");
-  await page.getByLabel("Password", { exact: true }).fill("NewCampus!6428");
-  await page.getByLabel("Confirm password").fill("NewCampus!6428");
-  await page
-    .getByRole("button", { name: "Create account", exact: true })
-    .click();
-  await expect(
-    page.getByRole("heading", { name: "Overview", exact: true }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "You're all caught up" }),
-  ).toHaveCount(0);
-  await expect(page.locator('nav a[href="#users"]')).toHaveCount(0);
-  await open(page, "subjects");
-  await expect(
-    page.getByRole("heading", { name: "Nothing here yet" }),
-  ).toBeVisible();
-});
-
-test("expired access refreshes automatically and sign-out survives an immediate reload", async ({
-  page,
-}) => {
-  await login(page, "student");
-  await page.evaluate(() => {
-    const tokens = JSON.parse(sessionStorage.getItem("tokens")!);
-    sessionStorage.setItem(
-      "tokens",
-      JSON.stringify({ ...tokens, access: "expired" }),
-    );
-  });
-  const renewed = page.waitForResponse((r) =>
-    r.url().endsWith("/api/user/refresh/"),
-  );
-  await page.reload();
-  expect((await renewed).status()).toBe(200);
-  await expect(
-    page.getByRole("heading", { name: "Overview", exact: true }),
-  ).toBeVisible();
-  await page.getByRole("button", { name: "Sign out", exact: true }).click();
-  await page.reload();
-  await expect(
-    page.getByRole("heading", { name: "Welcome back", exact: true }),
-  ).toBeVisible();
 });

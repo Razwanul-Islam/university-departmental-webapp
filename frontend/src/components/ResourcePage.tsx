@@ -356,8 +356,7 @@ export default function ResourcePage({
           close={() => setDeleting(null)}
         >
           <p>
-            This will permanently remove this record. Records used elsewhere are
-            protected.
+            This will permanently remove this record and its dependent records.
           </p>
           <div className="form-actions">
             <button className="secondary" onClick={() => setDeleting(null)}>

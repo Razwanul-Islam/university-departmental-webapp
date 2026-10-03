@@ -8,6 +8,8 @@ import {
   Users,
   RefreshCw,
   ArrowRight,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { api, type Item, type User } from "../api";
 import { ErrorBox, Empty, date, navigate } from "../ui";
@@ -17,6 +19,53 @@ export default function Dashboard({ user }: { user: User }) {
   const [data, setData] = useState<Item | null>(null);
   const [error, setError] = useState("");
   const [reload, setReload] = useState(0);
+  const [slide, setSlide] = useState(0);
+  const highlights = [
+    {
+      label: "YOUR ACADEMIC HOME",
+      title: "Your next chapter. All in one place.",
+      description: user.user_type === "H"
+        ? "Bring your people, plans, and progress together. A clearer view of everything that matters."
+        : user.user_type === "T"
+          ? "A little more space for what you do best. Your subjects, your students, and their next breakthrough."
+          : "Big ideas start with a little clarity. Your subjects, your progress, and your people, together.",
+      action: "Explore your subjects",
+      route: "subjects",
+      icon: BookOpen,
+      metric: data?.subjects,
+      metricLabel: "Subjects in your workspace",
+      note: "A place for possibility",
+      theme: "learning",
+    },
+    {
+      label: "MAKE ROOM FOR YOUR NEXT MILESTONE",
+      title: "A clear plan. A confident next step.",
+      description: "See what's coming, find your focus, and take it one day at a time. Your exam schedule is right here.",
+      action: "See your exam schedule",
+      route: "exams",
+      icon: CalendarDays,
+      metric: data?.upcoming_exams,
+      metricLabel: "Upcoming assessments",
+      note: "You've got this",
+      theme: "focus",
+    },
+    {
+      label: "BETTER, TOGETHER",
+      title: "Find your people. Follow your curiosity.",
+      description: "University goes beyond the classroom. Discover a club, share an interest, and make something of your own.",
+      action: "Discover your community",
+      route: "clubs",
+      icon: Users,
+      metric: null,
+      metricLabel: "Your campus community",
+      note: "There's a place for you",
+      theme: "community",
+    },
+  ];
+  const highlight = highlights[slide];
+  const HighlightIcon = highlight.icon;
+  const changeSlide = (direction: number) =>
+    setSlide((value) => (value + direction + highlights.length) % highlights.length);
   const [detail, setDetail] = useState<{ name: string; item: Item } | null>(
     null,
   );
@@ -39,7 +88,7 @@ export default function Dashboard({ user }: { user: User }) {
         <div>
           <span className="eyebrow">YOUR DEPARTMENT, AT A GLANCE</span>
           <h1>Overview</h1>
-          <p>A little clarity for the day ahead.</p>
+          <p>Good to see you, {user.name}. Make space for what matters.</p>
         </div>
         <span className="today">
           <CalendarDays size={16} />
@@ -59,37 +108,50 @@ export default function Dashboard({ user }: { user: User }) {
           Try again
         </button>
       )}
-      <section className="welcome">
-        <div>
-          <span className="welcome-label">
-            <span className="live-dot" />
-            CONNECTED TO YOUR DEPARTMENT
-          </span>
-          <h2>Good to see you, {user.name.split(" ")[0]}.</h2>
-          <p>
-            {user.user_type === "H"
-              ? "A clear view of your department. Keep your people and academics moving forward."
-              : user.user_type === "T"
-                ? "Your subjects, your students, and the progress you make together."
-                : "Your next class, your latest results, and everything in between."}
-          </p>
-          <button onClick={() => navigate("subjects")}>
-            Explore your subjects
-            <ArrowUpRight size={17} />
+      <section
+        className={"welcome " + highlight.theme}
+        aria-label="Workspace highlights"
+        aria-roledescription="carousel"
+        tabIndex={0}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+            event.preventDefault();
+            changeSlide(event.key === "ArrowRight" ? 1 : -1);
+          }
+        }}
+      >
+        <div className="hero-copy" key={slide} role="group" aria-roledescription="slide" aria-label={`${slide + 1} of ${highlights.length}`} aria-live="polite">
+          <span className="welcome-label"><span className="live-dot" />{highlight.label}</span>
+          <h2>{highlight.title}</h2>
+          <p>{highlight.description}</p>
+          <button className="hero-action" onClick={() => navigate(highlight.route)}>
+            {highlight.action}<ArrowUpRight size={19} />
           </button>
         </div>
-        <div className="campus-art" aria-hidden="true">
-          <div className="art-orbit" />
-          <div className="art-building">
-            <div className="art-roof" />
-            <div className="art-windows">
-              {Array.from({ length: 12 }, (_, i) => (
-                <span key={i} />
-              ))}
-            </div>
-            <div className="art-door" />
+        <div className="hero-visual" aria-hidden="true">
+          <div className="hero-orbit" />
+          <div className="hero-glass" key={highlight.theme}>
+            <span className="hero-icon"><HighlightIcon size={36} strokeWidth={1.5} /></span>
+            <span className="hero-card-label">DEPARTMENT / WORKSPACE</span>
+            <strong>{highlight.metric === null ? "Together." : highlight.metric ?? "—"}</strong>
+            <span>{highlight.metricLabel}</span>
+            <div className="hero-card-line" />
+            <span className="hero-card-bottom">A little closer to your goals <ArrowUpRight size={17} /></span>
           </div>
-          <span className="art-label">LEARN. CONNECT. GROW.</span>
+          <div className="hero-floating"><GraduationCap size={22} /><span>{highlight.note}</span></div>
+          <span className="hero-coordinate">LEARN / CONNECT / GROW</span>
+        </div>
+        <div className="carousel-controls">
+          <div className="carousel-dots" aria-label="Choose a highlight">
+            {highlights.map((item, index) => (
+              <button key={item.theme} aria-label={`Show highlight ${index + 1}: ${item.title}`} aria-pressed={slide === index} onClick={() => setSlide(index)} />
+            ))}
+          </div>
+          <span className="carousel-count">0{slide + 1}<span> / 0{highlights.length}</span></span>
+          <div className="carousel-arrows">
+            <button aria-label="Previous highlight" onClick={() => changeSlide(-1)}><ChevronLeft size={19} /></button>
+            <button aria-label="Next highlight" onClick={() => changeSlide(1)}><ChevronRight size={19} /></button>
+          </div>
         </div>
       </section>
       <section className="stats">

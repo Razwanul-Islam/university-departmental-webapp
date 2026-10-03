@@ -1,6 +1,6 @@
 # Departmental portal
 
-A complete departmental app with Django REST Framework and React + TypeScript. It keeps the original account and academic models, adds the missing relationships, and uses shared viewsets, tables, and forms to keep the logic simple.
+A complete departmental app with Django REST Framework and React + TypeScript. It uses PascalCase model classes (Subject, Exam, Notice, Result, Club, Class, Enrollment, and User) with the original database tables and API fields, adds the missing relationships, and uses shared viewsets, tables, and forms to keep the logic simple.
 
 ## Run locally (Windows / PowerShell)
 
@@ -11,7 +11,7 @@ py -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 Copy-Item .env.example .env
 .\.venv\Scripts\python.exe manage.py migrate
-.\.venv\Scripts\python.exe manage.py seed_demo
+.\.venv\Scripts\python.exe seed.py
 .\.venv\Scripts\python.exe manage.py runserver
 ```
 
@@ -33,7 +33,7 @@ Demo logins (all use **CampusDemo!2026**):
 | Teacher | teacher@demo.edu |
 | Student | student@demo.edu |
 
-The seed command is optional and repeatable. It adds six demo accounts, an enrolled class, three subjects, exams, results, notices, and clubs. It never resets existing passwords. To choose a different password for newly created accounts, use `seed_demo --password "your-password"`.
+The seed command is optional and repeatable. It adds six demo accounts, an enrolled class, three subjects, exams, results, notices, and clubs. It never resets existing passwords. To choose a different password for newly created accounts, use `python seed.py --password "your-password"`.
 
 To create an administrator without demo data:
 
@@ -69,10 +69,13 @@ Registration always creates a student. Heads create staff accounts or change rol
 
 Marks are integers from 0 to 100. Grade thresholds: A+ 80, A 75, A- 70, B+ 65, B 60, B- 55, C+ 50, C 45, D 40, F below 40. This default can be changed in `academic/models.py:grade_for`.
 
-Only one result is allowed per student and exam. The result subject must match the exam, and the student must be enrolled in a class offering that subject. Referenced records are protected from deletion. Classes and enrollments with results retain their academic links.
+Only one result is allowed per student and exam. The result subject must match the exam, and the student must be enrolled in a class offering that subject. Foreign keys use CASCADE: deleting a subject also deletes its exams, notices, and results; deleting a class deletes its enrollments; deleting a user deletes records linked to that user. Updating an exam or class still checks that existing results keep consistent subject links.
 
 ## Files to understand first
 
+- `management/`: Django project configuration, including settings, URL routing, WSGI, and ASGI.
+- `seed.py`: optional demo data, without a management command package.
+- `academic/tests.py`: focused permission, validation, and workflow checks.
 - `academic/models.py`: original entities plus class subjects, enrollment, club members, and grading.
 - `academic/serializers.py`: form validation and readable names in API responses.
 - `academic/views.py`: CRUD, role-specific record visibility, membership, and dashboard.
@@ -122,7 +125,16 @@ Write field names match the original models. Examples:
 {"club_name":"Coding Club","club_description":"Weekly projects","user_id":2}
 ```
 
-Original subject/exam/result create, update, delete and retrieve paths are retained as aliases. The browsable API at `/api/academic/` lists resource routes.
+The browsable API at `/api/academic/` lists resource routes.
+
+## Code standards
+
+Model and admin classes use PascalCase; functions and fields use snake_case. Python source follows Ruff formatting and import sorting. Historical migrations keep their original model references.
+
+```powershell
+.\.venv\Scripts\ruff.exe check academic account management manage.py seed.py
+.\.venv\Scripts\ruff.exe format --check academic account management manage.py seed.py
+```
 
 ## Verification
 
@@ -136,7 +148,7 @@ npx.cmd playwright install chromium
 npm.cmd test
 ```
 
-Browser tests launch Django and Vite automatically on ports 8000 and 5173. Keep those ports free. They use a separate `.browser-test.sqlite3`, never your main database, and save desktop/mobile screenshots to `frontend/test-results/`.
+Browser tests launch Django and Vite automatically on ports 8000 and 5173. Keep those ports free. They use a separate `.browser-test.sqlite3`, never your main database, and keep their reports in `frontend/test-results/`.
 
 ## Built frontend and deployment
 
@@ -147,7 +159,7 @@ cd ..
 .\.venv\Scripts\python.exe manage.py collectstatic --noinput
 ```
 
-After building, Django serves the portal HTML at `/`. During development, `runserver` serves its assets at `/static/`. In production, configure your web server to serve `staticfiles/` under `/static/` and run Django through WSGI or ASGI. Do not use `runserver` for deployment.
+After building, Django serves the portal HTML at `/`. During development, `runserver` serves its assets at `/static/`. In production, configure your web server to serve `staticfiles/` under `/static/` and run Django through `management.wsgi:application`. Do not use `runserver` for deployment.
 
 Set a random SECRET_KEY, DJANGO_DEBUG=false, ALLOWED_HOSTS, and exact frontend CORS origins. Configure HTTPS; secure cookies, SSL redirect, and HSTS are enabled when debug is off. An example environment file is included. Set POSTGRES_DB and the other POSTGRES variables to use PostgreSQL; otherwise SQLite is used.
 
