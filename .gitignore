@@ -4,10 +4,24 @@ academic/__pycache__/admin.cpython-311.pyc
 academic/__pycache__/models.cpython-311.pyc
 academic/__pycache__/serializers.cpython-311.pyc
 academic/migrations/__pycache__/0005_merge_20231226_1124.cpython-311.pyc
-academic/permissions.py
+
 account/__pycache__/models.cpython-311.pyc
 account/__pycache__/serializers.cpython-311.pyc
 
 academic/__pycache__/admin.cpython-311.pyc
 academic/__pycache__/models.cpython-311.pyc
 academic/migrations/__pycache__/0005_merge_20231226_1124.cpython-311.pyc
+.venv/
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+htmlcov/
+.coverage
+frontend/node_modules/
+frontend/dist/
+frontend/test-results/
+frontend/playwright-report/
+*.sqlite3
+staticfiles/
+*.tsbuildinfo

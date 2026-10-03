@@ -59,10 +59,5 @@ class TestUserLoginSerializer:
         user = User.objects.create_user(email='test@example.com', name='Test User', password='testpassword')
         serializer = UserLoginSerializer(instance=user)
         
-        # The password field in the serialized data is hashed
-        expected_data = {
-            'email': 'test@example.com',
-            'password': user.password  # Compare against the hashed password stored in the database
-        }
-        assert serializer.data['email'] == expected_data['email']
-        assert serializer.data['password'] == expected_data['password']
+        assert serializer.data['email'] == user.email
+        assert 'password' not in serializer.data

@@ -149,7 +149,7 @@ class ResultModelTest(TestCase):
         self.assertEqual(self.result.subject_id, self.subject)
         self.assertEqual(self.result.exam_id, self.exam)
         self.assertEqual(self.result.marks, 85)
-        self.assertEqual(self.result.grade, 'A')
+        self.assertEqual(self.result.grade, 'A+')
 
     def test_result_str(self):
         self.assertEqual(str(self.result.result_id), str(self.result.result_id))

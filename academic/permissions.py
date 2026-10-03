@@ -1,10 +1,15 @@
-# permissions.py
-from rest_framework import permissions
+from rest_framework.permissions import BasePermission, SAFE_METHODS
 
-class IsHeadUser(permissions.BasePermission):
+
+def is_head(user):
+    return user.is_authenticated and (user.is_admin or user.user_type == 'H')
+
+
+class IsHeadUser(BasePermission):
     def has_permission(self, request, view):
-        # Allow any authenticated user for GET requests (retrieve)
-        if request.method == 'GET':
-            return request.user.is_authenticated
-        # Check if the user is authenticated and has the user_type "Head" for other methods
-        return request.user.is_authenticated and request.user.user_type == 'H'
+        return request.user.is_authenticated and (request.method in SAFE_METHODS or is_head(request.user))
+
+
+class IsHeadAndTeacherUser(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and (request.method in SAFE_METHODS or is_head(request.user) or request.user.user_type == 'T')

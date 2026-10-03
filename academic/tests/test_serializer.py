@@ -60,7 +60,7 @@ from academic.serializers import SubjectSerializer
 class TestSubjectSerializer:
     
     def test_subject_serializer(self):
-        user = get_user_model().objects.create(email='teacher@example.com', name='Teacher', password='testpassword')
+        user = get_user_model().objects.create(email='teacher@example.com', name='Teacher', password='testpassword', user_type='T')
         
         subject_data = {
             'subject_id': 1,

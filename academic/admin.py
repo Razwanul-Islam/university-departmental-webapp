@@ -33,3 +33,6 @@ class clubAdmin(admin.ModelAdmin):
 class ClassAdmin(admin.ModelAdmin):
     list_display = ('class_id', 'class_name', 'semester','session','academic_year', 'class_teacher')
 
+
+from .models import Enrollment
+admin.site.register(Enrollment)
